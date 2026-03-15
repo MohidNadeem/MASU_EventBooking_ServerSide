@@ -26,10 +26,29 @@ public class StudentResource {
     @POST
     public Response createStudent(CreateStudentRequest request) {
 
+        if (request == null
+                || request.getUsername() == null
+                || request.getPassword() == null
+                || request.getFullName() == null
+                || request.getGender() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"All fields are required\"}")
+                    .build();
+        }
+
+        String gender = request.getGender().toUpperCase();
+
+        if (!gender.equals("BOY") && !gender.equals("GIRL")) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Gender must be BOY or GIRL\"}")
+                    .build();
+        }
+
         Student student = new Student();
         student.setUsername(request.getUsername());
         student.setPassword(request.getPassword());
         student.setFullName(request.getFullName());
+        student.setGender(gender);
         student.setStatus("ACTIVE");
 
         boolean created = studentDao.createStudent(student);
@@ -50,6 +69,12 @@ public class StudentResource {
     @Path("/login")
     public Response login(LoginRequest request) {
 
+        if (request == null || request.getUsername() == null || request.getPassword() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Username and password are required\"}")
+                    .build();
+        }
+
         Student student = studentDao.findByUsername(request.getUsername());
 
         if (student == null) {
@@ -66,7 +91,7 @@ public class StudentResource {
 
         return Response.ok(student).build();
     }
-    
+
     // PUT API to update Student Status (Active / Alumni)
     @PUT
     @Path("/{id}/status")
@@ -96,7 +121,7 @@ public class StudentResource {
 
         return Response.ok("{\"message\":\"Student status updated successfully\"}").build();
     }
-    
+
     // Just a Testing API
     @GET
     @Path("/ping")

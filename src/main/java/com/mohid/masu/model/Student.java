@@ -6,16 +6,18 @@ public class Student {
     private String username;
     private String password;
     private String fullName;
+    private String gender;
     private String status; // ACTIVE or ALUMNI
 
     public Student() {
     }
 
-    public Student(String id, String username, String password, String fullName, String status) {
+    public Student(String id, String username, String password, String fullName, String gender, String status) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.fullName = fullName;
+        this.gender = gender;
         this.status = status;
     }
 
@@ -49,6 +51,14 @@ public class Student {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     public String getStatus() {

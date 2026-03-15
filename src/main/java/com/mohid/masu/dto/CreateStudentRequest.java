@@ -5,6 +5,7 @@ public class CreateStudentRequest {
     private String username;
     private String password;
     private String fullName;
+    private String gender;
 
     public CreateStudentRequest() {
     }
@@ -31,5 +32,13 @@ public class CreateStudentRequest {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 }

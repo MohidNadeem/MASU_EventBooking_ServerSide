@@ -5,6 +5,7 @@ import com.mohid.masu.model.Student;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 public class StudentDao {
 
@@ -23,14 +24,18 @@ public class StudentDao {
             return null;
         }
 
-        Student student = new Student();
-        student.setId(doc.getObjectId("_id").toHexString());
-        student.setUsername(doc.getString("username"));
-        student.setPassword(doc.getString("password"));
-        student.setFullName(doc.getString("fullName"));
-        student.setStatus(doc.getString("status"));
+        return mapDocumentToStudent(doc);
+    }
 
-        return student;
+    // Function for: Search Student by Collection Data Id
+    public Student findById(String id) {
+        Document doc = studentCollection.find(new Document("_id", new ObjectId(id))).first();
+
+        if (doc == null) {
+            return null;
+        }
+
+        return mapDocumentToStudent(doc);
     }
 
     // Function for: Creating a new Student
@@ -44,17 +49,30 @@ public class StudentDao {
         Document doc = new Document("username", student.getUsername())
                 .append("password", student.getPassword())
                 .append("fullName", student.getFullName())
+                .append("gender", student.getGender())
                 .append("status", student.getStatus());
 
         studentCollection.insertOne(doc);
         return true;
     }
-    
+
     // Function for: Updating Student Status (Active / Alumni)
     public boolean updateStudentStatus(String studentId, String status) {
-        Document query = new Document("_id", new org.bson.types.ObjectId(studentId));
+        Document query = new Document("_id", new ObjectId(studentId));
         Document update = new Document("$set", new Document("status", status));
 
         return studentCollection.updateOne(query, update).getModifiedCount() > 0;
+    }
+    
+    // Function for: Mapping Doc Collection to Student Object
+    private Student mapDocumentToStudent(Document doc) {
+        Student student = new Student();
+        student.setId(doc.getObjectId("_id").toHexString());
+        student.setUsername(doc.getString("username"));
+        student.setPassword(doc.getString("password"));
+        student.setFullName(doc.getString("fullName"));
+        student.setGender(doc.getString("gender"));
+        student.setStatus(doc.getString("status"));
+        return student;
     }
 }
