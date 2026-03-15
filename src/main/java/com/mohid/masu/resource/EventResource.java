@@ -8,6 +8,9 @@ import com.mohid.masu.model.Student;
 import com.mohid.masu.dao.BookingDao;
 import com.mohid.masu.dto.BookingRequest;
 import com.mohid.masu.model.Booking;
+import com.mohid.masu.dao.RatingDao;
+import com.mohid.masu.dto.RatingRequest;
+import com.mohid.masu.model.Rating;
 import java.util.List;
 import java.time.LocalDate;
 import javax.ws.rs.Consumes;
@@ -29,6 +32,7 @@ public class EventResource {
     private final EventDao eventDao = new EventDao();
     private final StudentDao studentDao = new StudentDao();
     private final BookingDao bookingDao = new BookingDao();
+    private final RatingDao ratingDao = new RatingDao();
 
     @POST
     public Response createEvent(CreateEventRequest request) {
@@ -204,5 +208,93 @@ public class EventResource {
         return Response.status(Response.Status.CREATED)
                 .entity("{\"message\":\"Event booked successfully\"}")
                 .build();
+    }
+    
+    // POST API to mark the ratings of an eventy given by a student
+    @POST
+    @Path("/{id}/rate")
+    public Response rateEvent(@PathParam("id") String eventId, RatingRequest request) {
+
+        if (request == null || request.getStudentId() == null || request.getStudentId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Student ID is required\"}")
+                    .build();
+        }
+
+        if (request.getStars() < 1 || request.getStars() > 5) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Rating must be between 1 and 5\"}")
+                    .build();
+        }
+
+        Event event = eventDao.getEventById(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        Student student = studentDao.findById(request.getStudentId());
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        // Adding a Requirement Check / Constraint: Only students who booked the event can rate it
+        if (!bookingDao.hasStudentBooked(eventId, request.getStudentId())) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"message\":\"Only students who booked the event can rate it\"}")
+                    .build();
+        }
+
+        if (ratingDao.hasStudentRated(eventId, request.getStudentId())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"Student has already rated this event\"}")
+                    .build();
+        }
+
+        Rating rating = new Rating();
+        rating.setEventId(eventId);
+        rating.setStudentId(request.getStudentId());
+        rating.setStars(request.getStars());
+
+        ratingDao.createRating(rating);
+
+        return Response.status(Response.Status.CREATED)
+                .entity("{\"message\":\"Rating submitted successfully\"}")
+                .build();
+    }
+    
+    @GET
+    @Path("/{id}/ratings")
+    public Response getEventRatings(@PathParam("id") String eventId) {
+
+        Event event = eventDao.getEventById(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        List<Rating> ratings = ratingDao.getRatingsByEventId(eventId);
+        return Response.ok(ratings).build();
+    }
+    
+    @GET
+    @Path("/{id}/ratings/average")
+    public Response getAverageRating(@PathParam("id") String eventId) {
+
+        Event event = eventDao.getEventById(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        double average = ratingDao.getAverageRatingForEvent(eventId);
+
+        String responseJson = "{\"eventId\":\"" + eventId + "\",\"averageRating\":" + average + "}";
+        return Response.ok(responseJson).build();
     }
 }
