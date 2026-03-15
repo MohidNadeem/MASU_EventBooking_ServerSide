@@ -5,8 +5,11 @@ import com.mohid.masu.dao.StudentDao;
 import com.mohid.masu.dto.CreateEventRequest;
 import com.mohid.masu.model.Event;
 import com.mohid.masu.model.Student;
-
+import com.mohid.masu.dao.BookingDao;
+import com.mohid.masu.dto.BookingRequest;
+import com.mohid.masu.model.Booking;
 import java.util.List;
+import java.time.LocalDate;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -17,6 +20,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+
 @Path("/events")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -24,6 +28,7 @@ public class EventResource {
 
     private final EventDao eventDao = new EventDao();
     private final StudentDao studentDao = new StudentDao();
+    private final BookingDao bookingDao = new BookingDao();
 
     @POST
     public Response createEvent(CreateEventRequest request) {
@@ -119,5 +124,85 @@ public class EventResource {
                                  @QueryParam("gender") String gender) {
         List<Event> events = eventDao.searchEvents(type, date, location, gender);
         return Response.ok(events).build();
+    }
+    
+    // POST API Call for booking an event
+    @POST
+    @Path("/{id}/book")
+    public Response bookEvent(@PathParam("id") String eventId, BookingRequest request) {
+
+        if (request == null || request.getStudentId() == null || request.getStudentId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Student ID is required\"}")
+                    .build();
+        }
+
+        Event event = eventDao.getEventById(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        Student student = studentDao.findById(request.getStudentId());
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        if (bookingDao.hasStudentBooked(eventId, request.getStudentId())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"Student has already booked this event\"}")
+                    .build();
+        }
+
+        String eventGender = event.getGender();
+        String studentGender = student.getGender();
+
+        if ("BOYS".equalsIgnoreCase(eventGender) && !"BOY".equalsIgnoreCase(studentGender)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"message\":\"Only boy students can register for this event\"}")
+                    .build();
+        }
+
+        if ("GIRLS".equalsIgnoreCase(eventGender) && !"GIRL".equalsIgnoreCase(studentGender)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"message\":\"Only girl students can register for this event\"}")
+                    .build();
+        }
+
+        long totalBookings = bookingDao.countBookingsForEvent(eventId);
+        if (totalBookings >= event.getMaxParticipants()) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"Event is full\"}")
+                    .build();
+        }
+
+        String bookingType = "STUDENT";
+
+        if ("ALUMNI".equalsIgnoreCase(student.getStatus())) {
+            long alumniBookings = bookingDao.countAlumniBookingsForEvent(eventId);
+
+            if (alumniBookings >= event.getAlumniReservedSlots()) {
+                return Response.status(Response.Status.CONFLICT)
+                        .entity("{\"message\":\"No alumni slots available for this event\"}")
+                        .build();
+            }
+
+            bookingType = "ALUMNI";
+        }
+
+        Booking booking = new Booking();
+        booking.setEventId(eventId);
+        booking.setStudentId(request.getStudentId());
+        booking.setBookingType(bookingType);
+        booking.setBookingDate(LocalDate.now().toString());
+
+        bookingDao.createBooking(booking);
+
+        return Response.status(Response.Status.CREATED)
+                .entity("{\"message\":\"Event booked successfully\"}")
+                .build();
     }
 }

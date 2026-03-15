@@ -5,6 +5,8 @@ import com.mohid.masu.dto.CreateStudentRequest;
 import com.mohid.masu.dto.LoginRequest;
 import com.mohid.masu.dto.UpdateStudentStatusRequest;
 import com.mohid.masu.model.Student;
+import com.mohid.masu.dao.BookingDao;
+import com.mohid.masu.model.Booking;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -14,6 +16,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 @Path("/students")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -21,6 +24,7 @@ import javax.ws.rs.core.Response;
 public class StudentResource {
 
     private final StudentDao studentDao = new StudentDao();
+    private final BookingDao bookingDao = new BookingDao();
 
     // POST API to create a new student (Used by Admin role)
     @POST
@@ -120,6 +124,23 @@ public class StudentResource {
         }
 
         return Response.ok("{\"message\":\"Student status updated successfully\"}").build();
+    }
+    
+    // GET API Call to send bookings made by a student
+    @GET
+    @Path("/{id}/bookings")
+    public Response getBookingsByStudent(@PathParam("id") String id) {
+
+        Student student = studentDao.findById(id);
+
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        List<Booking> bookings = bookingDao.getBookingsByStudentId(id);
+        return Response.ok(bookings).build();
     }
 
     // Just a Testing API
