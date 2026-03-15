@@ -49,4 +49,12 @@ public class StudentDao {
         studentCollection.insertOne(doc);
         return true;
     }
+    
+    // Function for: Updating Student Status (Active / Alumni)
+    public boolean updateStudentStatus(String studentId, String status) {
+        Document query = new Document("_id", new org.bson.types.ObjectId(studentId));
+        Document update = new Document("$set", new Document("status", status));
+
+        return studentCollection.updateOne(query, update).getModifiedCount() > 0;
+    }
 }

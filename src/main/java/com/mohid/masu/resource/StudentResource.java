@@ -3,11 +3,14 @@ package com.mohid.masu.resource;
 import com.mohid.masu.dao.StudentDao;
 import com.mohid.masu.dto.CreateStudentRequest;
 import com.mohid.masu.dto.LoginRequest;
+import com.mohid.masu.dto.UpdateStudentStatusRequest;
 import com.mohid.masu.model.Student;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -19,6 +22,7 @@ public class StudentResource {
 
     private final StudentDao studentDao = new StudentDao();
 
+    // POST API to create a new student (Used by Admin role)
     @POST
     public Response createStudent(CreateStudentRequest request) {
 
@@ -41,6 +45,7 @@ public class StudentResource {
                 .build();
     }
 
+    // POST API for Student Login
     @POST
     @Path("/login")
     public Response login(LoginRequest request) {
@@ -61,7 +66,38 @@ public class StudentResource {
 
         return Response.ok(student).build();
     }
+    
+    // PUT API to update Student Status (Active / Alumni)
+    @PUT
+    @Path("/{id}/status")
+    public Response updateStudentStatus(@PathParam("id") String id, UpdateStudentStatusRequest request) {
 
+        if (request == null || request.getStatus() == null || request.getStatus().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Status is required\"}")
+                    .build();
+        }
+
+        String status = request.getStatus().toUpperCase();
+
+        if (!status.equals("ACTIVE") && !status.equals("ALUMNI")) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Status must be ACTIVE or ALUMNI\"}")
+                    .build();
+        }
+
+        boolean updated = studentDao.updateStudentStatus(id, status);
+
+        if (!updated) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found or status unchanged\"}")
+                    .build();
+        }
+
+        return Response.ok("{\"message\":\"Student status updated successfully\"}").build();
+    }
+    
+    // Just a Testing API
     @GET
     @Path("/ping")
     public Response ping() {
