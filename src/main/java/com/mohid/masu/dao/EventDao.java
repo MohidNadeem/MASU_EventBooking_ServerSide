@@ -18,7 +18,7 @@ public class EventDao {
         MongoDatabase database = MongoConnection.getDatabase();
         this.eventCollection = database.getCollection("events");
     }
-    
+
     // Function for: Creating an Event
     public void createEvent(Event event) {
         Document doc = new Document("publisherId", event.getPublisherId())
@@ -27,7 +27,12 @@ public class EventDao {
                 .append("date", event.getDate())
                 .append("startTime", event.getStartTime())
                 .append("endTime", event.getEndTime())
+                .append("venueName", event.getVenueName())
                 .append("location", event.getLocation())
+                .append("postalCode", event.getPostalCode())
+                .append("country", event.getCountry())
+                .append("latitude", event.getLatitude())
+                .append("longitude", event.getLongitude())
                 .append("description", event.getDescription())
                 .append("gender", event.getGender())
                 .append("currency", event.getCurrency())
@@ -90,7 +95,7 @@ public class EventDao {
 
         return events;
     }
-    
+
     // Function for: Mapping Function (Collection Doc -> Event Object)
     private Event mapDocumentToEvent(Document doc) {
         Event event = new Event();
@@ -101,14 +106,34 @@ public class EventDao {
         event.setDate(doc.getString("date"));
         event.setStartTime(doc.getString("startTime"));
         event.setEndTime(doc.getString("endTime"));
+        event.setVenueName(doc.getString("venueName"));
         event.setLocation(doc.getString("location"));
+        event.setPostalCode(doc.getString("postalCode"));
+        event.setCountry(doc.getString("country"));
+
+        Object latObj = doc.get("latitude");
+        if (latObj instanceof Number) {
+            event.setLatitude(((Number) latObj).doubleValue());
+        }
+
+        Object lngObj = doc.get("longitude");
+        if (lngObj instanceof Number) {
+            event.setLongitude(((Number) lngObj).doubleValue());
+        }
+
         event.setDescription(doc.getString("description"));
         event.setGender(doc.getString("gender"));
         event.setCurrency(doc.getString("currency"));
         event.setDuration(doc.getString("duration"));
-        event.setCost(doc.getDouble("cost"));
-        event.setMaxParticipants(doc.getInteger("maxParticipants"));
-        event.setAlumniReservedSlots(doc.getInteger("alumniReservedSlots"));
+
+        Object costObj = doc.get("cost");
+        if (costObj instanceof Number) {
+            event.setCost(((Number) costObj).doubleValue());
+        }
+
+        event.setMaxParticipants(doc.getInteger("maxParticipants", 0));
+        event.setAlumniReservedSlots(doc.getInteger("alumniReservedSlots", 0));
+
         return event;
     }
 }

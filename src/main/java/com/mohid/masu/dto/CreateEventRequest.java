@@ -8,7 +8,12 @@ public class CreateEventRequest {
     private String date;
     private String startTime;
     private String endTime;
+    private String venueName;
     private String location;
+    private String country;
+    private double latitude;
+    private double longitude;
+    private String postalCode;
     private String description;
     private String gender;
     private String currency;
@@ -68,12 +73,52 @@ public class CreateEventRequest {
         this.endTime = endTime;
     }
 
+    public String getVenueName() {
+        return venueName;
+    }
+
+    public void setVenueName(String venueName) {
+        this.venueName = venueName;
+    }
+
     public String getLocation() {
         return location;
     }
 
     public void setLocation(String location) {
         this.location = location;
+    }
+    
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     public String getDescription() {

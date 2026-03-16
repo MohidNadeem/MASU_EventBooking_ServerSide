@@ -44,7 +44,10 @@ public class EventResource {
                 || request.getDate() == null
                 || request.getStartTime() == null
                 || request.getEndTime() == null
+                || request.getVenueName() == null
                 || request.getLocation() == null
+                || request.getCountry() == null
+                || request.getPostalCode() == null
                 || request.getDescription() == null
                 || request.getGender() == null
                 || request.getCurrency() == null
@@ -53,7 +56,7 @@ public class EventResource {
                     .entity("{\"message\":\"Missing required fields\"}")
                     .build();
         }
-        
+
         // Event Gender Check
         String eventGender = request.getGender().toUpperCase();
 
@@ -84,7 +87,12 @@ public class EventResource {
         event.setDate(request.getDate());
         event.setStartTime(request.getStartTime());
         event.setEndTime(request.getEndTime());
+        event.setVenueName(request.getVenueName());
         event.setLocation(request.getLocation());
+        event.setCountry(request.getCountry());
+        event.setLatitude(request.getLatitude());
+        event.setLongitude(request.getLongitude());
+        event.setPostalCode(request.getPostalCode());
         event.setDescription(request.getDescription());
         event.setGender(eventGender);
         event.setCurrency(request.getCurrency());

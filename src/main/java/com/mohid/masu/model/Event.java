@@ -9,7 +9,12 @@ public class Event {
     private String date;
     private String startTime;
     private String endTime;
+    private String venueName;
     private String location;
+    private String country;
+    private double latitude;
+    private double longitude;
+    private String postalCode;
     private String description;
     private String gender;
     private String currency;
@@ -22,9 +27,10 @@ public class Event {
     }
 
     public Event(String id, String publisherId, String title, String type, String date,
-                 String startTime, String endTime, String location, String description,
-                 String gender, String currency, String duration,
-                 double cost, int maxParticipants, int alumniReservedSlots) {
+                 String startTime, String endTime, String venueName, String location,
+                 String country, double latitude, double longitude, String postalCode, String description,
+                 String gender, String currency, String duration, double cost,
+                 int maxParticipants, int alumniReservedSlots) {
         this.id = id;
         this.publisherId = publisherId;
         this.title = title;
@@ -32,7 +38,12 @@ public class Event {
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.venueName = venueName;
         this.location = location;
+        this.country = country;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.postalCode = postalCode;
         this.description = description;
         this.gender = gender;
         this.currency = currency;
@@ -98,12 +109,52 @@ public class Event {
         this.endTime = endTime;
     }
 
+    public String getVenueName() {
+        return venueName;
+    }
+
+    public void setVenueName(String venueName) {
+        this.venueName = venueName;
+    }
+
     public String getLocation() {
         return location;
     }
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+    
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
     }
 
     public String getDescription() {
