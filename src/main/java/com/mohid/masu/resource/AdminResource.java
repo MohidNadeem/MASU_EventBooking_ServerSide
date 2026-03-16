@@ -2,11 +2,14 @@ package com.mohid.masu.resource;
 
 import com.mohid.masu.dao.AdminDao;
 import com.mohid.masu.dto.LoginRequest;
+import com.mohid.masu.dto.UpdatePasswordRequest;
 import com.mohid.masu.model.Admin;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -45,5 +48,36 @@ public class AdminResource {
         }
 
         return Response.ok("{\"message\":\"Admin login successful\",\"username\":\"" 
-               + admin.getUsername() + "\",\"fullName\":\"" + admin.getFullName() + "\"}").build(); }
+               + admin.getUsername() + "\",\"fullName\":\"" + admin.getFullName() + "\"}").build(); 
+    }
+    
+    // PUT API to update admin pass
+    @PUT
+    @Path("/{id}/password")
+    public Response updateAdminPassword(@PathParam("id") String id, UpdatePasswordRequest request) {
+
+        if (request == null || request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"New password is required\"}")
+                    .build();
+        }
+
+        Admin admin = adminDao.findById(id);
+
+        if (admin == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Admin not found\"}")
+                    .build();
+        }
+
+        boolean updated = adminDao.updatePassword(id, request.getNewPassword());
+
+        if (!updated) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to update password\"}")
+                    .build();
+        }
+
+        return Response.ok("{\"message\":\"Admin password updated successfully\"}").build();
+    }
 }

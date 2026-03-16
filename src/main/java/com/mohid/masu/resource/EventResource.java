@@ -11,8 +11,12 @@ import com.mohid.masu.model.Booking;
 import com.mohid.masu.dao.RatingDao;
 import com.mohid.masu.dto.RatingRequest;
 import com.mohid.masu.model.Rating;
+import com.mohid.masu.dto.EventFullDetailsResponse;
+import com.mohid.masu.dto.UpdateEventRequest;
+import com.mohid.masu.service.ExternalApiService;
 import java.util.List;
 import java.time.LocalDate;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,6 +37,8 @@ public class EventResource {
     private final StudentDao studentDao = new StudentDao();
     private final BookingDao bookingDao = new BookingDao();
     private final RatingDao ratingDao = new RatingDao();
+    private final ExternalApiService externalApiService = new ExternalApiService();
+
 
     @POST
     public Response createEvent(CreateEventRequest request) {
@@ -304,5 +310,84 @@ public class EventResource {
 
         String responseJson = "{\"eventId\":\"" + eventId + "\",\"averageRating\":" + average + "}";
         return Response.ok(responseJson).build();
+    }
+    
+    // API Endpoint to get full details for an event
+    @GET
+    @Path("/{id}/full-details")
+    public Response getFullDetails(@PathParam("id") String eventId) {
+        try {
+            Event event = eventDao.getEventById(eventId);
+
+            if (event == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"message\":\"Event not found\"}")
+                        .build();
+            }
+
+            double averageRating = ratingDao.getAverageRatingForEvent(eventId);
+
+            String weather = externalApiService.getWeatherByCoordinates(
+                    event.getLatitude(),
+                    event.getLongitude(),
+                    event.getVenueName() + ", " + event.getLocation()
+            );
+
+            String nearbyLocations = externalApiService.getNearbyLocationsForEvent(
+                    event.getPostalCode(),
+                    event.getCountry()
+            );
+
+            EventFullDetailsResponse response = new EventFullDetailsResponse();
+            response.setEvent(event);
+            response.setAverageRating(averageRating);
+            response.setWeather(weather);
+            response.setNearbyLocations(nearbyLocations);
+
+            return Response.ok(response).build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to fetch full event details\"}")
+                    .build();
+        }
+    }
+    
+    @PUT
+    @Path("/{id}")
+    public Response updateEvent(@PathParam("id") String eventId, UpdateEventRequest request) {
+
+        if (request == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Request body is required\"}")
+                    .build();
+        }
+
+        Event existingEvent = eventDao.getEventById(eventId);
+
+        if (existingEvent == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        existingEvent.setDate(request.getDate());
+        existingEvent.setStartTime(request.getStartTime());
+        existingEvent.setEndTime(request.getEndTime());
+        existingEvent.setDescription(request.getDescription());
+        existingEvent.setCost(request.getCost());
+        existingEvent.setMaxParticipants(request.getMaxParticipants());
+        existingEvent.setAlumniReservedSlots(request.getAlumniReservedSlots());
+
+        boolean updated = eventDao.updateEvent(eventId, existingEvent);
+
+        if (!updated) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to update event\"}")
+                    .build();
+        }
+
+        return Response.ok("{\"message\":\"Event updated successfully\"}").build();
     }
 }

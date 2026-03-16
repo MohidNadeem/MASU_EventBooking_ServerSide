@@ -64,6 +64,14 @@ public class StudentDao {
         return studentCollection.updateOne(query, update).getModifiedCount() > 0;
     }
     
+    // Function for: Updating Student Pass
+    public boolean updatePassword(String studentId, String newPassword) {
+        Document query = new Document("_id", new ObjectId(studentId));
+        Document update = new Document("$set", new Document("password", newPassword));
+
+        return studentCollection.updateOne(query, update).getModifiedCount() > 0;
+    }
+    
     // Function for: Mapping Doc Collection to Student Object
     private Student mapDocumentToStudent(Document doc) {
         Student student = new Student();

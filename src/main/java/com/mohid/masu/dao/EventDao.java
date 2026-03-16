@@ -95,6 +95,23 @@ public class EventDao {
 
         return events;
     }
+    
+    // Function for: Updating an event
+    public boolean updateEvent(String eventId, Event event) {
+        Document query = new Document("_id", new ObjectId(eventId));
+
+        Document updateFields = new Document("date", event.getDate())
+                .append("startTime", event.getStartTime())
+                .append("endTime", event.getEndTime())
+                .append("description", event.getDescription())
+                .append("cost", event.getCost())
+                .append("maxParticipants", event.getMaxParticipants())
+                .append("alumniReservedSlots", event.getAlumniReservedSlots());
+
+        Document update = new Document("$set", updateFields);
+
+        return eventCollection.updateOne(query, update).getModifiedCount() > 0;
+    }
 
     // Function for: Mapping Function (Collection Doc -> Event Object)
     private Event mapDocumentToEvent(Document doc) {

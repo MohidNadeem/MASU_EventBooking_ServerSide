@@ -6,6 +6,7 @@ import com.mohid.masu.dto.LoginRequest;
 import com.mohid.masu.dto.UpdateStudentStatusRequest;
 import com.mohid.masu.model.Student;
 import com.mohid.masu.dao.BookingDao;
+import com.mohid.masu.dto.UpdatePasswordRequest;
 import com.mohid.masu.model.Booking;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -141,6 +142,36 @@ public class StudentResource {
 
         List<Booking> bookings = bookingDao.getBookingsByStudentId(id);
         return Response.ok(bookings).build();
+    }
+    
+    // PUT API to update student pass
+    @PUT
+    @Path("/{id}/password")
+    public Response updateStudentPassword(@PathParam("id") String id, UpdatePasswordRequest request) {
+
+        if (request == null || request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"New password is required\"}")
+                    .build();
+        }
+
+        Student student = studentDao.findById(id);
+
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        boolean updated = studentDao.updatePassword(id, request.getNewPassword());
+
+        if (!updated) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to update password\"}")
+                    .build();
+        }
+
+        return Response.ok("{\"message\":\"Student password updated successfully\"}").build();
     }
 
     // Just a Testing API
