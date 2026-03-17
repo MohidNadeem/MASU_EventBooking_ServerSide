@@ -13,6 +13,7 @@ import com.mohid.masu.dto.RatingRequest;
 import com.mohid.masu.model.Rating;
 import com.mohid.masu.dto.EventFullDetailsResponse;
 import com.mohid.masu.dto.UpdateEventRequest;
+import com.mohid.masu.dto.UpdateEventStatusRequest;
 import com.mohid.masu.service.ExternalApiService;
 import java.util.List;
 import java.time.LocalDate;
@@ -106,6 +107,7 @@ public class EventResource {
         event.setCost(request.getCost());
         event.setMaxParticipants(request.getMaxParticipants());
         event.setAlumniReservedSlots(request.getAlumniReservedSlots());
+        event.setStatus("ACTIVE");
 
         eventDao.createEvent(event);
 
@@ -116,6 +118,7 @@ public class EventResource {
 
     @GET
     public Response getAllEvents() {
+        eventDao.updatePassedEvents();
         List<Event> events = eventDao.getAllEvents();
         return Response.ok(events).build();
     }
@@ -123,6 +126,7 @@ public class EventResource {
     @GET
     @Path("/{id}")
     public Response getEventById(@PathParam("id") String id) {
+        eventDao.updatePassedEvents();
         Event event = eventDao.getEventById(id);
 
         if (event == null) {
@@ -140,6 +144,7 @@ public class EventResource {
                                  @QueryParam("date") String date,
                                  @QueryParam("location") String location,
                                  @QueryParam("gender") String gender) {
+        eventDao.updatePassedEvents();
         List<Event> events = eventDao.searchEvents(type, date, location, gender);
         return Response.ok(events).build();
     }
@@ -194,6 +199,18 @@ public class EventResource {
         if (totalBookings >= event.getMaxParticipants()) {
             return Response.status(Response.Status.CONFLICT)
                     .entity("{\"message\":\"Event is full\"}")
+                    .build();
+        }
+        
+        if ("CANCELLED".equalsIgnoreCase(event.getStatus())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"This event has been cancelled\"}")
+                    .build();
+        }
+
+        if ("PASSED".equalsIgnoreCase(event.getStatus())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"This event has already passed\"}")
                     .build();
         }
 
@@ -389,5 +406,42 @@ public class EventResource {
         }
 
         return Response.ok("{\"message\":\"Event updated successfully\"}").build();
+    }
+    
+    @PUT
+    @Path("/{id}/status")
+    public Response updateEventStatus(@PathParam("id") String eventId, UpdateEventStatusRequest request) {
+
+        if (request == null || request.getStatus() == null || request.getStatus().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Status is required\"}")
+                    .build();
+        }
+
+        String status = request.getStatus().toUpperCase();
+
+        if (!status.equals("ACTIVE") && !status.equals("CANCELLED") && !status.equals("PASSED")) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Status must be ACTIVE, CANCELLED or PASSED\"}")
+                    .build();
+        }
+
+        Event event = eventDao.getEventById(eventId);
+
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        boolean updated = eventDao.updateEventStatus(eventId, status);
+
+        if (!updated) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to update event status\"}")
+                    .build();
+        }
+
+        return Response.ok("{\"message\":\"Event status updated successfully\"}").build();
     }
 }

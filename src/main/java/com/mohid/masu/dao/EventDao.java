@@ -7,6 +7,8 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -39,15 +41,21 @@ public class EventDao {
                 .append("duration", event.getDuration())
                 .append("cost", event.getCost())
                 .append("maxParticipants", event.getMaxParticipants())
-                .append("alumniReservedSlots", event.getAlumniReservedSlots());
+                .append("alumniReservedSlots", event.getAlumniReservedSlots())
+                .append("status", event.getStatus());
 
         eventCollection.insertOne(doc);
     }
 
     // Function for: View all Events
     public List<Event> getAllEvents() {
+
         List<Event> events = new ArrayList<>();
-        MongoCursor<Document> cursor = eventCollection.find().iterator();
+
+        MongoCursor<Document> cursor = eventCollection
+                .find()
+                .sort(new Document("status", 1).append("date", 1))
+                .iterator();
 
         while (cursor.hasNext()) {
             Document doc = cursor.next();
@@ -180,7 +188,48 @@ public class EventDao {
 
         event.setMaxParticipants(doc.getInteger("maxParticipants", 0));
         event.setAlumniReservedSlots(doc.getInteger("alumniReservedSlots", 0));
+        event.setStatus(doc.getString("status"));
 
         return event;
+    }
+    
+    public boolean updateEventStatus(String eventId, String status) {
+        Document query = new Document("_id", new ObjectId(eventId));
+        Document update = new Document("$set", new Document("status", status));
+
+        return eventCollection.updateOne(query, update).getModifiedCount() > 0;
+    }
+    
+    public void updatePassedEvents() {
+        List<Event> events = getAllEvents();
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        for (Event event : events) {
+
+            if (event.getStatus() == null) {
+                event.setStatus("ACTIVE");
+            }
+
+            if (!"ACTIVE".equalsIgnoreCase(event.getStatus())) {
+                continue;
+            }
+
+            try {
+                LocalDate eventDate = LocalDate.parse(event.getDate());
+                LocalTime eventEndTime = LocalTime.parse(event.getEndTime());
+
+                boolean shouldPass = eventDate.isBefore(today)
+                        || (eventDate.equals(today) && eventEndTime.isBefore(now));
+
+                if (shouldPass) {
+                    updateEventStatus(event.getId(), "PASSED");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

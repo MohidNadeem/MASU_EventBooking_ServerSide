@@ -21,6 +21,8 @@ public class CreateEventRequest {
     private double cost;
     private int maxParticipants;
     private int alumniReservedSlots;
+    private String status;
+    
 
     public CreateEventRequest() {
     }
@@ -175,5 +177,13 @@ public class CreateEventRequest {
 
     public void setAlumniReservedSlots(int alumniReservedSlots) {
         this.alumniReservedSlots = alumniReservedSlots;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

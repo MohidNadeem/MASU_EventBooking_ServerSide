@@ -22,6 +22,7 @@ public class Event {
     private double cost;
     private int maxParticipants;
     private int alumniReservedSlots;
+    private String status;
 
     public Event() {
     }
@@ -30,7 +31,7 @@ public class Event {
                  String startTime, String endTime, String venueName, String location,
                  String country, double latitude, double longitude, String postalCode, String description,
                  String gender, String currency, String duration, double cost,
-                 int maxParticipants, int alumniReservedSlots) {
+                 int maxParticipants, int alumniReservedSlots, String status) {
         this.id = id;
         this.publisherId = publisherId;
         this.title = title;
@@ -51,6 +52,7 @@ public class Event {
         this.cost = cost;
         this.maxParticipants = maxParticipants;
         this.alumniReservedSlots = alumniReservedSlots;
+        this.status = status;
     }
 
     public String getId() {
@@ -211,5 +213,13 @@ public class Event {
 
     public void setAlumniReservedSlots(int alumniReservedSlots) {
         this.alumniReservedSlots = alumniReservedSlots;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
