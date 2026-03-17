@@ -2,9 +2,19 @@ package com.mohid.masu.dto;
 
 public class UpdatePasswordRequest {
 
+    private String oldPassword;
     private String newPassword;
+    private String confirmPassword;
 
     public UpdatePasswordRequest() {
+    }
+
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
     }
 
     public String getNewPassword() {
@@ -13,5 +23,13 @@ public class UpdatePasswordRequest {
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
     }
 }

@@ -47,8 +47,10 @@ public class AdminResource {
                     .build();
         }
 
-        return Response.ok("{\"message\":\"Admin login successful\",\"username\":\"" 
-               + admin.getUsername() + "\",\"fullName\":\"" + admin.getFullName() + "\"}").build(); 
+        return Response.ok("{\"message\":\"Admin login successful\",\"id\":\"" 
+               + admin.getId() + "\",\"username\":\"" 
+               + admin.getUsername() + "\",\"fullName\":\"" 
+               + admin.getFullName() + "\"}").build();
     }
     
     // PUT API to update admin pass
@@ -56,9 +58,12 @@ public class AdminResource {
     @Path("/{id}/password")
     public Response updateAdminPassword(@PathParam("id") String id, UpdatePasswordRequest request) {
 
-        if (request == null || request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+        if (request == null
+                || request.getOldPassword() == null || request.getOldPassword().isBlank()
+                || request.getNewPassword() == null || request.getNewPassword().isBlank()
+                || request.getConfirmPassword() == null || request.getConfirmPassword().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"message\":\"New password is required\"}")
+                    .entity("{\"message\":\"Old password, new password and confirm password are required\"}")
                     .build();
         }
 
@@ -67,6 +72,18 @@ public class AdminResource {
         if (admin == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"message\":\"Admin not found\"}")
+                    .build();
+        }
+
+        if (!admin.getPassword().equals(request.getOldPassword())) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("{\"message\":\"Old password is incorrect\"}")
+                    .build();
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"New password and confirm password do not match\"}")
                     .build();
         }
 

@@ -95,7 +95,11 @@ public class StudentResource {
                     .build();
         }
 
-        return Response.ok(student).build();
+        return Response.ok("{\"message\":\"Student login successful\",\"id\":\"" 
+               + student.getId() + "\",\"username\":\"" 
+               + student.getUsername() + "\",\"fullName\":\"" 
+               + student.getFullName() + "\",\"gender\":\"" 
+               + student.getGender() + "\",\"status\":\"" + student.getStatus() + "\"}").build(); 
     }
 
     // PUT API to update Student Status (Active / Alumni)
@@ -150,9 +154,12 @@ public class StudentResource {
     @Path("/{id}/password")
     public Response updateStudentPassword(@PathParam("id") String id, UpdatePasswordRequest request) {
 
-        if (request == null || request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+        if (request == null
+                || request.getOldPassword() == null || request.getOldPassword().isBlank()
+                || request.getNewPassword() == null || request.getNewPassword().isBlank()
+                || request.getConfirmPassword() == null || request.getConfirmPassword().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"message\":\"New password is required\"}")
+                    .entity("{\"message\":\"Old password, new password and confirm password are required\"}")
                     .build();
         }
 
@@ -161,6 +168,18 @@ public class StudentResource {
         if (student == null) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        if (!student.getPassword().equals(request.getOldPassword())) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("{\"message\":\"Old password is incorrect\"}")
+                    .build();
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"New password and confirm password do not match\"}")
                     .build();
         }
 
