@@ -6,6 +6,7 @@ public class CreateStudentRequest {
     private String password;
     private String fullName;
     private String gender;
+    private boolean passwordUpdatedByStudent;
 
     public CreateStudentRequest() {
     }
@@ -40,5 +41,13 @@ public class CreateStudentRequest {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+    
+    public boolean isPasswordUpdatedByStudent() {
+        return passwordUpdatedByStudent;
+    }
+
+    public void setPasswordUpdatedByStudent(boolean passwordUpdatedByStudent) {
+        this.passwordUpdatedByStudent = passwordUpdatedByStudent;
     }
 }

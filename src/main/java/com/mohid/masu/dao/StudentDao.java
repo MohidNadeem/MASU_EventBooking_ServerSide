@@ -6,6 +6,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import com.mongodb.client.MongoCursor;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StudentDao {
 
@@ -50,7 +53,8 @@ public class StudentDao {
                 .append("password", student.getPassword())
                 .append("fullName", student.getFullName())
                 .append("gender", student.getGender())
-                .append("status", student.getStatus());
+                .append("status", student.getStatus())
+                .append("passwordUpdatedByStudent", false);
 
         studentCollection.insertOne(doc);
         return true;
@@ -67,9 +71,27 @@ public class StudentDao {
     // Function for: Updating Student Pass
     public boolean updatePassword(String studentId, String newPassword) {
         Document query = new Document("_id", new ObjectId(studentId));
-        Document update = new Document("$set", new Document("password", newPassword));
+
+        Document updateFields = new Document()
+                .append("password", newPassword)
+                .append("passwordUpdatedByStudent", true);
+
+        Document update = new Document("$set", updateFields);
 
         return studentCollection.updateOne(query, update).getModifiedCount() > 0;
+    }
+    
+    // Function for: Get all Students
+    public List<Student> getAllStudents() {
+        List<Student> students = new ArrayList<>();
+        MongoCursor<Document> cursor = studentCollection.find().iterator();
+
+        while (cursor.hasNext()) {
+            Document doc = cursor.next();
+            students.add(mapDocumentToStudent(doc));
+        }
+
+        return students;
     }
     
     // Function for: Mapping Doc Collection to Student Object
@@ -81,6 +103,7 @@ public class StudentDao {
         student.setFullName(doc.getString("fullName"));
         student.setGender(doc.getString("gender"));
         student.setStatus(doc.getString("status"));
+        student.setPasswordUpdatedByStudent(doc.getBoolean("passwordUpdatedByStudent", false));
         return student;
     }
 }

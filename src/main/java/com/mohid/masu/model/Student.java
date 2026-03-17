@@ -8,6 +8,7 @@ public class Student {
     private String fullName;
     private String gender;
     private String status; // ACTIVE or ALUMNI
+    private boolean passwordUpdatedByStudent;
 
     public Student() {
     }
@@ -67,5 +68,13 @@ public class Student {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public boolean isPasswordUpdatedByStudent() {
+        return passwordUpdatedByStudent;
+    }
+
+    public void setPasswordUpdatedByStudent(boolean passwordUpdatedByStudent) {
+        this.passwordUpdatedByStudent = passwordUpdatedByStudent;
     }
 }

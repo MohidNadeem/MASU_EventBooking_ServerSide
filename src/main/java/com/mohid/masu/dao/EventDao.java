@@ -96,17 +96,47 @@ public class EventDao {
         return events;
     }
     
-    // Function for: Updating an event
+    // Function for: Updating an event (partial update)
     public boolean updateEvent(String eventId, Event event) {
         Document query = new Document("_id", new ObjectId(eventId));
 
-        Document updateFields = new Document("date", event.getDate())
-                .append("startTime", event.getStartTime())
-                .append("endTime", event.getEndTime())
-                .append("description", event.getDescription())
-                .append("cost", event.getCost())
-                .append("maxParticipants", event.getMaxParticipants())
-                .append("alumniReservedSlots", event.getAlumniReservedSlots());
+        Document updateFields = new Document();
+        
+        // Adding null checks so the request does not need to send each attribute 
+        // even if only one or two fields are required to change (partial updates)
+        if (event.getDate() != null) {
+            updateFields.append("date", event.getDate());
+        }
+
+        if (event.getStartTime() != null) {
+            updateFields.append("startTime", event.getStartTime());
+        }
+
+        if (event.getEndTime() != null) {
+            updateFields.append("endTime", event.getEndTime());
+        }
+
+        if (event.getDescription() != null) {
+            updateFields.append("description", event.getDescription());
+        }
+
+        // kept -1 as sentinal value as it is an invalid value anyways for the next 3 fields
+        if (event.getCost() != -1) {
+            updateFields.append("cost", event.getCost());
+        }
+
+        if (event.getMaxParticipants() != -1) {
+            updateFields.append("maxParticipants", event.getMaxParticipants());
+        }
+
+        if (event.getAlumniReservedSlots() != -1) {
+            updateFields.append("alumniReservedSlots", event.getAlumniReservedSlots());
+        }
+
+        // If nothing was provided, it will not run update
+        if (updateFields.isEmpty()) {
+            return false;
+        }
 
         Document update = new Document("$set", updateFields);
 

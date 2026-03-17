@@ -55,7 +55,8 @@ public class StudentResource {
         student.setFullName(request.getFullName());
         student.setGender(gender);
         student.setStatus("ACTIVE");
-
+        student.setPasswordUpdatedByStudent(false);
+        
         boolean created = studentDao.createStudent(student);
 
         if (!created) {
@@ -172,6 +173,12 @@ public class StudentResource {
         }
 
         return Response.ok("{\"message\":\"Student password updated successfully\"}").build();
+    }
+    
+    @GET
+    public Response getAllStudents() {
+        List<Student> students = studentDao.getAllStudents();
+        return Response.ok(students).build();
     }
 
     // Just a Testing API
