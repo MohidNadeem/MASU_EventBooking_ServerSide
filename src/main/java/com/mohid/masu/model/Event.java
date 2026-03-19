@@ -24,6 +24,9 @@ public class Event {
     private int alumniReservedSlots;
     private String status;
 
+    private int remainingSeats;
+    private int remainingAlumniSlots;
+
     public Event() {
     }
 
@@ -221,5 +224,21 @@ public class Event {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getRemainingSeats() {
+        return remainingSeats;
+    }
+
+    public void setRemainingSeats(int remainingSeats) {
+        this.remainingSeats = remainingSeats;
+    }
+
+    public int getRemainingAlumniSlots() {
+        return remainingAlumniSlots;
+    }
+
+    public void setRemainingAlumniSlots(int remainingAlumniSlots) {
+        this.remainingAlumniSlots = remainingAlumniSlots;
     }
 }

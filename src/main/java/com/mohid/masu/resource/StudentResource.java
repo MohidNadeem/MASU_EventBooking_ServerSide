@@ -101,6 +101,21 @@ public class StudentResource {
                + student.getFullName() + "\",\"gender\":\"" 
                + student.getGender() + "\",\"status\":\"" + student.getStatus() + "\"}").build(); 
     }
+    
+    @GET
+    @Path("/{id}")
+    public Response getStudentById(@PathParam("id") String id) {
+
+        Student student = studentDao.findById(id);
+
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        return Response.ok(student).build();
+    }
 
     // PUT API to update Student Status (Active / Alumni)
     @PUT

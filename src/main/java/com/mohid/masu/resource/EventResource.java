@@ -19,6 +19,7 @@ import java.util.List;
 import java.time.LocalDate;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -115,11 +116,33 @@ public class EventResource {
                 .entity("{\"message\":\"Event created successfully\"}")
                 .build();
     }
+    
+    private void attachRemainingCounts(Event event) {
+        if (event == null) {
+            return;
+        }
+
+        long totalBookings = bookingDao.countBookingsForEvent(event.getId());
+        long alumniBookings = bookingDao.countAlumniBookingsForEvent(event.getId());
+
+        int remainingSeats = event.getMaxParticipants() - (int) totalBookings;
+        int remainingAlumniSlots = event.getAlumniReservedSlots() - (int) alumniBookings;
+
+        event.setRemainingSeats(Math.max(remainingSeats, 0));
+        event.setRemainingAlumniSlots(Math.max(remainingAlumniSlots, 0));
+    }
+
+    private void attachRemainingCounts(List<Event> events) {
+        for (Event event : events) {
+            attachRemainingCounts(event);
+        }
+    }
 
     @GET
     public Response getAllEvents() {
         eventDao.updatePassedEvents();
         List<Event> events = eventDao.getAllEvents();
+        attachRemainingCounts(events);
         return Response.ok(events).build();
     }
 
@@ -135,6 +158,7 @@ public class EventResource {
                     .build();
         }
 
+        attachRemainingCounts(event);
         return Response.ok(event).build();
     }
 
@@ -146,6 +170,7 @@ public class EventResource {
                                  @QueryParam("gender") String gender) {
         eventDao.updatePassedEvents();
         List<Event> events = eventDao.searchEvents(type, date, location, gender);
+        attachRemainingCounts(events);
         return Response.ok(events).build();
     }
     
@@ -342,6 +367,8 @@ public class EventResource {
                         .build();
             }
 
+            attachRemainingCounts(event);
+
             double averageRating = ratingDao.getAverageRatingForEvent(eventId);
 
             String weather = externalApiService.getWeatherByCoordinates(
@@ -444,4 +471,53 @@ public class EventResource {
 
         return Response.ok("{\"message\":\"Event status updated successfully\"}").build();
     }
+    
+    @DELETE
+    @Path("/{id}/unbook")
+    public Response unbookEvent(@PathParam("id") String eventId, BookingRequest request) {
+
+        if (request == null || request.getStudentId() == null || request.getStudentId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Student ID is required\"}")
+                    .build();
+        }
+
+        Event event = eventDao.getEventById(eventId);
+        if (event == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Event not found\"}")
+                    .build();
+        }
+
+        Student student = studentDao.findById(request.getStudentId());
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Student not found\"}")
+                    .build();
+        }
+
+        Booking booking = bookingDao.getBookingByEventAndStudent(eventId, request.getStudentId());
+        if (booking == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"No booking found for this student and event\"}")
+                    .build();
+        }
+
+        if ("PASSED".equalsIgnoreCase(event.getStatus())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"message\":\"Cannot unbook a passed event\"}")
+                    .build();
+        }
+
+        boolean deleted = bookingDao.deleteBookingById(booking.getId());
+
+        if (!deleted) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to unbook event\"}")
+                    .build();
+        }
+
+        return Response.ok("{\"message\":\"Event unbooked successfully\"}").build();
+    }
+
 }

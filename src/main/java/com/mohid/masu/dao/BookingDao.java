@@ -5,9 +5,11 @@ import com.mohid.masu.model.Booking;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.DeleteResult;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 public class BookingDao {
 
@@ -66,5 +68,37 @@ public class BookingDao {
         }
 
         return bookings;
+    }
+
+    public Booking getBookingByEventAndStudent(String eventId, String studentId) {
+        Document doc = bookingCollection.find(
+                new Document("eventId", eventId).append("studentId", studentId)
+        ).first();
+
+        if (doc == null) {
+            return null;
+        }
+
+        Booking booking = new Booking();
+        booking.setId(doc.getObjectId("_id").toHexString());
+        booking.setEventId(doc.getString("eventId"));
+        booking.setStudentId(doc.getString("studentId"));
+        booking.setBookingType(doc.getString("bookingType"));
+        booking.setBookingDate(doc.getString("bookingDate"));
+        return booking;
+    }
+
+    public boolean deleteBookingById(String bookingId) {
+        DeleteResult result = bookingCollection.deleteOne(
+                new Document("_id", new ObjectId(bookingId))
+        );
+        return result.getDeletedCount() > 0;
+    }
+
+    public boolean deleteBooking(String eventId, String studentId) {
+        DeleteResult result = bookingCollection.deleteOne(
+                new Document("eventId", eventId).append("studentId", studentId)
+        );
+        return result.getDeletedCount() > 0;
     }
 }
