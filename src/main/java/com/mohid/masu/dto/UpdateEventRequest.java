@@ -6,6 +6,7 @@ public class UpdateEventRequest {
     private String startTime;
     private String endTime;
     private String description;
+    private String duration;
     private double cost;
     private int maxParticipants;
     private int alumniReservedSlots;
@@ -43,6 +44,14 @@ public class UpdateEventRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
     }
 
     public double getCost() {

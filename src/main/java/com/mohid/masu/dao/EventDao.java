@@ -127,6 +127,10 @@ public class EventDao {
         if (event.getDescription() != null) {
             updateFields.append("description", event.getDescription());
         }
+        
+        if (event.getDuration() != null) {
+            updateFields.append("duration", event.getDuration());
+        }
 
         // kept -1 as sentinal value as it is an invalid value anyways for the next 3 fields
         if (event.getCost() != -1) {

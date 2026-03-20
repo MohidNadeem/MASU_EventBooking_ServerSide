@@ -420,6 +420,7 @@ public class EventResource {
         existingEvent.setStartTime(request.getStartTime());
         existingEvent.setEndTime(request.getEndTime());
         existingEvent.setDescription(request.getDescription());
+        existingEvent.setDuration(request.getDuration());
         existingEvent.setCost(request.getCost());
         existingEvent.setMaxParticipants(request.getMaxParticipants());
         existingEvent.setAlumniReservedSlots(request.getAlumniReservedSlots());
