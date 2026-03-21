@@ -101,5 +101,43 @@ public class ExternalResource {
                     .build();
         }
     }
+    
+    // GET API Endpoint to get Location Suggestions
+    @GET
+    @Path("/location-search")
+    public Response searchLocationSuggestions(@QueryParam("q") String query) {
+        try {
+            if (query == null || query.isBlank()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\":\"Query is required\"}")
+                        .build();
+            }
+
+            String result = externalApiService.searchLocationSuggestions(query);
+            return Response.ok(result).build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to fetch location suggestions\"}")
+                    .build();
+        }
+    }
+
+    // GET API Endpoint to get static map preview image
+    @GET
+    @Path("/static-map")
+    public Response getStaticMap(@QueryParam("lat") double lat, @QueryParam("lng") double lng) {
+        try {
+            String imageUrl = externalApiService.getStaticMapPreview(lat, lng);
+            return Response.ok("{\"imageUrl\":\"" + imageUrl + "\"}").build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\":\"Failed to generate static map preview\"}")
+                    .build();
+        }
+    }
 
 }

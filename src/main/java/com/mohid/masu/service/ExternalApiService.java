@@ -86,6 +86,36 @@ public class ExternalApiService {
 
         return result;
     }
+    
+    // Adding a function: Will get the suggestions while setting an event loaction
+    public String searchLocationSuggestions(String query) throws Exception {
+        String apiKey = PropertiesLoader.getProperty("locationiq.apiKey");
+
+        String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+
+        String url = "https://us1.locationiq.com/v1/autocomplete"
+                + "?key=" + apiKey
+                + "&q=" + encodedQuery
+                + "&limit=5"
+                + "&normalizecity=1"
+                + "&format=json";
+
+        return HttpUtil.sendGetRequest(url);
+    }
+
+    // Adding a function: Will get an image (static map preview)
+    public String getStaticMapPreview(double latitude, double longitude) throws Exception {
+        String apiKey = PropertiesLoader.getProperty("locationiq.apiKey");
+
+        return "https://maps.locationiq.com/v3/staticmap"
+                + "?key=" + apiKey
+                + "&center=" + latitude + "," + longitude
+                + "&zoom=14"
+                + "&size=900x280"
+                + "&format=png"
+                + "&maptype=streets"
+                + "&markers=icon:large-red-cutout|" + latitude + "," + longitude;
+    }
 
     private String safeText(JsonNode node, String field) {
         JsonNode value = node.get(field);
