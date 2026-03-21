@@ -44,7 +44,7 @@ public class ExternalApiService {
     public String getNearbyLocationsForEvent(String postalCode, String country) throws Exception {
         String username = PropertiesLoader.getProperty("geonames.username");
 
-        String url = "http://api.geonames.org/findNearbyPostalCodesJSON?postalcode="
+        String url = "http://api.geonames.org/findNearbyWikipediaJSON?postalcode="
                 + postalCode
                 + "&country=" + country
                 + "&radius=5"

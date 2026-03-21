@@ -77,23 +77,40 @@ public class EventDao {
     }
 
     // Function for: Search an Event (Either by Type, Date or Location of an Event)
-    public List<Event> searchEvents(String type, String date, String location, String gender) {
+    public List<Event> searchEvents(String type, String date, String gender, String costType, String keyword) {
+        List<Event> events = new ArrayList<>();
+
         Document query = new Document();
 
         if (type != null && !type.isBlank()) {
             query.append("type", type);
         }
+
         if (date != null && !date.isBlank()) {
             query.append("date", date);
         }
-        if (location != null && !location.isBlank()) {
-            query.append("location", location);
-        }
+
         if (gender != null && !gender.isBlank()) {
             query.append("gender", gender);
         }
 
-        List<Event> events = new ArrayList<>();
+        if (costType != null && !costType.isBlank()) {
+            if ("FREE".equalsIgnoreCase(costType)) {
+                query.append("cost", 0);
+            } else if ("PRICED".equalsIgnoreCase(costType)) {
+                query.append("cost", new Document("$gt", 0));
+            }
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            List<Document> orConditions = new ArrayList<>();
+            orConditions.add(new Document("title", new Document("$regex", keyword).append("$options", "i")));
+            orConditions.add(new Document("venueName", new Document("$regex", keyword).append("$options", "i")));
+            orConditions.add(new Document("description", new Document("$regex", keyword).append("$options", "i")));
+
+            query.append("$or", orConditions);
+        }
+
         MongoCursor<Document> cursor = eventCollection.find(query).iterator();
 
         while (cursor.hasNext()) {

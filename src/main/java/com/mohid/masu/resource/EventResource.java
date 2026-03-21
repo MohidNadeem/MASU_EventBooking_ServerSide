@@ -166,10 +166,11 @@ public class EventResource {
     @Path("/search")
     public Response searchEvents(@QueryParam("type") String type,
                                  @QueryParam("date") String date,
-                                 @QueryParam("location") String location,
-                                 @QueryParam("gender") String gender) {
+                                 @QueryParam("gender") String gender,
+                                 @QueryParam("costType") String costType,
+                                 @QueryParam("keyword") String keyword) {
         eventDao.updatePassedEvents();
-        List<Event> events = eventDao.searchEvents(type, date, location, gender);
+        List<Event> events = eventDao.searchEvents(type, date, gender, costType, keyword);
         attachRemainingCounts(events);
         return Response.ok(events).build();
     }
